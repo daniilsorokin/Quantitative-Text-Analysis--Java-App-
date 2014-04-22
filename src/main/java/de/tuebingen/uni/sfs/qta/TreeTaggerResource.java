@@ -2,15 +2,15 @@ package de.tuebingen.uni.sfs.qta;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import opennlp.tools.tokenize.SimpleTokenizer;
+import opennlp.tools.tokenize.Tokenizer;
 import org.annolab.tt4j.TokenHandler;
 import org.annolab.tt4j.TreeTaggerException;
 import org.annolab.tt4j.TreeTaggerWrapper;
 
 /**
- *
  * @author Daniil Sorokin<daniil.sorokin@uni-tuebingen.de>
  */
 public enum TreeTaggerResource {
@@ -21,8 +21,11 @@ public enum TreeTaggerResource {
     public static final String TREETAGGER_MODEL_RU = "/usr/lib/TreeTagger/lib/russian.par";
     
     private TreeTaggerWrapper<String> resource;
+    private final ArrayList<Word> taggerOutput;
 
     private TreeTaggerResource() {
+        taggerOutput = new ArrayList<Word>();
+        
         System.out.print("Load TreeTagger: ");
         try {
             System.setProperty("treetagger.home", TREETAGGER_FOLDER);
@@ -30,6 +33,13 @@ public enum TreeTaggerResource {
             tt.setModel(TREETAGGER_MODEL_RU);
             resource = tt;
             System.out.println(" OK");
+            
+            resource.setHandler(new TokenHandler<String>() {
+                @Override
+                public void token(String token, String pos, String lemma) {
+                    taggerOutput.add(new Word(lemma, pos));
+                }
+            });
         } catch (IOException ex) {
             Logger.getLogger(TreeTaggerResource.class.getName()).log(Level.SEVERE, 
                     "TreeTagger load failed. Check the parameter file.");
@@ -40,14 +50,12 @@ public enum TreeTaggerResource {
         return resource;
     }
     
-    public ArrayList<String> getLemmas(String[] tokens){
-        final ArrayList<String> taggerLemmaOutput = new ArrayList<String>();
-        resource.setHandler(new TokenHandler<String>() {
-            @Override
-            public void token(String token, String pos, String lemma) {
-                taggerLemmaOutput.add(lemma);
-            }
-        });
+    /**
+     * 
+     * @param tokens
+     * @return 
+     */
+    public ArrayList<Word> getLemmas(String[] tokens){        
         try {
             resource.process(tokens);
         } catch (TreeTaggerException ex) {
@@ -55,15 +63,18 @@ public enum TreeTaggerResource {
         } catch (IOException ex) {
             Logger.getLogger(TreeTaggerResource.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return new ArrayList<String>(taggerLemmaOutput);
+        ArrayList<Word> returnArray = new ArrayList<Word>(taggerOutput);
+        taggerOutput.clear();
+        return returnArray;
     }
     
     public static void main(String[] args) {
         String sentence = " В середине 1840-х гг. на сцене русской журналистики появляется и вскоре приобретает известность любопытный персонаж.";
-        String[] tokens = sentence.replaceAll("[\\.,!?:;\'\'\"\"]", "").split("\\s+");
-        ArrayList<String> lemmas = TreeTaggerResource.INSTANCE.getLemmas(tokens);
-        for (String lemma : lemmas) {
-            System.out.println(lemma);
+        Tokenizer tokenizer = SimpleTokenizer.INSTANCE;
+        String[] tokens = tokenizer.tokenize(sentence);
+        ArrayList<Word> lemmas = TreeTaggerResource.INSTANCE.getLemmas(tokens);
+        for (Word lemma : lemmas) {
+            System.out.println(lemma.getLemma());
         }
     }
 }
