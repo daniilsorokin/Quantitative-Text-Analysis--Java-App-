@@ -2,7 +2,6 @@ package de.tuebingen.uni.sfs.qta;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -31,7 +30,7 @@ import javax.swing.table.TableRowSorter;
 /**
  * @author Daniil Sorokin<daniil.sorokin@uni-tuebingen.de>
  */
-public class QtaApp extends JFrame
+public class QtaApp extends JFrame implements ActionListener
 {
     public static void main( String[] args )
     {
@@ -64,6 +63,8 @@ public class QtaApp extends JFrame
     private DefaultTableModel tableModel;
     private JCheckBox noPunctChBox;
     private JTable resultsTable;
+    private JButton btnBrowse, btnStart, btnSave;
+    private JFileChooser fc;
     
     private void initGUIComponents() {
         // set frame preferences
@@ -72,6 +73,9 @@ public class QtaApp extends JFrame
         this.setMinimumSize(new Dimension(600, 200));
         this.setTitle("QTA");
         this.setLocationRelativeTo(null);
+        
+        fc = new JFileChooser();
+        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         
         // the main panel
         JPanel contentPane = new JPanel();
@@ -85,7 +89,7 @@ public class QtaApp extends JFrame
         JPanel fileSelectionInnerPane = new JPanel();
         fileSelectionPane.add(fileSelectionInnerPane);
         
-        JButton btnBrowse = new JButton("Browse");
+        btnBrowse = new JButton("Browse");
         btnBrowse.setPreferredSize(new Dimension(100, 30));
         fileSelectionInnerPane.add(btnBrowse);
         
@@ -94,54 +98,24 @@ public class QtaApp extends JFrame
         fileSelectionInnerPane.add(fileTextField);
         
         
-        btnBrowse.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                JFileChooser fc = new JFileChooser();
-                fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                int returnVal = fc.showOpenDialog(null);
-                if (returnVal == JFileChooser.APPROVE_OPTION) {
-                    filePath = fc.getSelectedFile().getAbsolutePath();
-                    fileTextField.setText(fc.getSelectedFile().getName());
-                }
-            }
-        });
+        btnBrowse.addActionListener(this);
         
         fileTypeBox = new JComboBox();
         fileTypeBox.setPreferredSize(new Dimension(100, 30));
         fileTypeBox.setModel(new DefaultComboBoxModel(FileClass.getNames()));
         fileSelectionInnerPane.add(fileTypeBox);
         
-        JButton btnStart = new JButton("Start");
+        btnStart = new JButton("Start");
         btnStart.setPreferredSize(new Dimension(100, 30));
         fileSelectionInnerPane.add(btnStart);
-        btnStart.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (filePath != null){
-                    try {
-                        String text = FileReader.getTextFromFile(filePath, FileClass.valueOf(fileTypeBox.getSelectedItem().toString()));
-                        frequencyTable = QTAnalyser.computeFrequencyList(text);
-                        List<Word> ordered = QTAnalyser.sortMapByValues(frequencyTable);
-                        for (Word word : ordered) {
-                            tableModel.addRow(new Object[] {
-                                word.getLemma(), 
-                                word.getPos(), 
-                                frequencyTable.get(word)
-                            });
-                        }
-                    } catch (IOException ex) {
-                        JOptionPane.showMessageDialog(null, "Can't open the selected file.");
-                    }
-                }
-            }
-        });
+        btnStart.addActionListener(this);
         
         noPunctChBox = new JCheckBox("Leave out punctuation and numbers.");
         JPanel optionsPane = new JPanel();
         optionsPane.add(noPunctChBox);
-        JButton btnSave = new JButton("Save table to file");
-        btnStart.setPreferredSize(new Dimension(100, 30));
+        btnSave = new JButton("Save table to file");
+        btnSave.addActionListener(this);
+        btnSave.setEnabled(false);
         optionsPane.add(btnSave);
 
         fileSelectionPane.add(optionsPane);
@@ -161,8 +135,8 @@ public class QtaApp extends JFrame
                 }
             }
         };
-        resultsTable.setModel(tableModel);
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<DefaultTableModel>(tableModel);
+        resultsTable.setModel(tableModel);
         resultsTable.setRowSorter(sorter);
         
         noPunctChBox.addChangeListener(new ChangeListener() {
@@ -173,19 +147,56 @@ public class QtaApp extends JFrame
                     filters.add(RowFilter.regexFilter("(SENT|PUNCT)", 1));
                     filters.add(RowFilter.regexFilter("(@card@)", 0));
                     ((TableRowSorter) resultsTable.getRowSorter())
-                            .setRowFilter(RowFilter.notFilter( 
-                                    RowFilter.orFilter(filters)
-                                    )
-                            );
-                } else 
+                            .setRowFilter(RowFilter.notFilter(RowFilter.orFilter(filters)));
+                } else {
                     ((TableRowSorter) resultsTable.getRowSorter()).setRowFilter(null);
+                }
             }
         });        
 
         tableScrollPanel.setViewportView(resultsTable);
         contentPane.add(fileSelectionPane, BorderLayout.NORTH);
-//        contentPane.add(optionsPane, BorderLayout.SOUTH);
         contentPane.add(tableScrollPanel, BorderLayout.CENTER);
         this.pack();
     }
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == btnBrowse){
+            int returnVal = fc.showOpenDialog(null);
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                filePath = fc.getSelectedFile().getAbsolutePath();
+                fileTextField.setText(fc.getSelectedFile().getName());
+            }
+        } else if (e.getSource() == btnStart) {
+            if (filePath != null){
+                try {
+                    String text = FileReader.getTextFromFile(filePath, FileClass.valueOf(fileTypeBox.getSelectedItem().toString()));
+                    frequencyTable = QTAnalyser.computeFrequencyList(text);
+                    List<Word> ordered = QTAnalyser.sortMapByValues(frequencyTable);
+                    tableModel.setRowCount(0);
+                    for (Word word : ordered) {
+                        tableModel.addRow(new Object[] {
+                            word.getLemma(),
+                            word.getPos(),
+                            frequencyTable.get(word)
+                        });
+                    }
+                    btnSave.setEnabled(true);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(null, "Can't open the selected file.");
+                }
+            }
+        } else if (e.getSource() == btnSave){
+            int returnVal = fc.showSaveDialog(null);
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                String saveTo = fc.getSelectedFile().getAbsolutePath();
+                try {
+                    FileReader.saveTModelTofile(saveTo, resultsTable);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(null, "Can't save to the selected file.");
+                }
+            }            
+        }
+    }    
 }
