@@ -46,9 +46,6 @@ public enum TreeTaggerResource {
         }
     }
 
-    public TreeTaggerWrapper<String> getResource() {
-        return resource;
-    }
     
     /**
      * 
@@ -66,15 +63,5 @@ public enum TreeTaggerResource {
         ArrayList<Word> returnArray = new ArrayList<Word>(taggerOutput);
         taggerOutput.clear();
         return returnArray;
-    }
-    
-    public static void main(String[] args) {
-        String sentence = " В середине 1840-х гг. на сцене русской журналистики появляется и вскоре приобретает известность любопытный персонаж.";
-        Tokenizer tokenizer = SimpleTokenizer.INSTANCE;
-        String[] tokens = tokenizer.tokenize(sentence);
-        ArrayList<Word> lemmas = TreeTaggerResource.INSTANCE.getLemmas(tokens);
-        for (Word lemma : lemmas) {
-            System.out.println(lemma.getLemma());
-        }
     }
 }
