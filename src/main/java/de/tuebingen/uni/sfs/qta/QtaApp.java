@@ -27,6 +27,8 @@ import javax.swing.RowFilter;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
@@ -86,6 +88,7 @@ public class QtaApp extends JFrame implements ActionListener
     private JTable resultsTable;
     private JButton btnBrowse, btnStart, btnSave;
     private JFileChooser fc;
+    private FileFilter ffInput, ffOutput;
     
     private void initGUIComponents() {
         // set frame preferences
@@ -97,6 +100,10 @@ public class QtaApp extends JFrame implements ActionListener
         
         fc = new JFileChooser();
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        ffInput = new FileNameExtensionFilter("Supported input formats (*.txt, *.docx)", "txt", "docx");
+        ffOutput = new FileNameExtensionFilter("Output format (*.csv)", "csv");
+        fc.addChoosableFileFilter(ffInput);
+        fc.addChoosableFileFilter(ffOutput);
         
         // the main panel
         JPanel contentPane = new JPanel();
@@ -174,6 +181,7 @@ public class QtaApp extends JFrame implements ActionListener
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == btnBrowse){
+            fc.setFileFilter(ffInput);
             int returnVal = fc.showOpenDialog(null);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 fileTextField.setText(fc.getSelectedFile().getName());
@@ -199,6 +207,7 @@ public class QtaApp extends JFrame implements ActionListener
                 }
             }
         } else if (e.getSource() == btnSave){
+            fc.setFileFilter(ffOutput);
             int returnVal = fc.showSaveDialog(null);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 String saveTo = fc.getSelectedFile().getAbsolutePath();

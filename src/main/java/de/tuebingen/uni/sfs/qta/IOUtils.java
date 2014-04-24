@@ -50,6 +50,7 @@ public class IOUtils {
     }
     
     public static void saveTModelTofile(String fileName, JTable table) throws IOException {
+        if (!fileName.endsWith(".csv")) fileName += ".csv";
         BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), ENCODING));
         TableModel model = table.getModel();
         for( int i = 0; i < table.getRowCount(); i++ ) {
