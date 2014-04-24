@@ -37,7 +37,8 @@ public enum TreeTaggerResource {
                 }
             });
         } catch (IOException ex) {
-            JOptionPane.showMessageDialog(null, "TreeTagger load failed. Proceed without lemmatization.");
+            JOptionPane.showMessageDialog(null, "TreeTagger load failed. Proceed without lemmatization.\n"
+                    + "Location: " + System.getProperty("treetagger.home"));
         }
     }
 

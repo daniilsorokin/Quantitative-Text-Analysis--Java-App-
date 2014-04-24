@@ -9,7 +9,38 @@
 
   <name>quantitative-text-analysis</name>
   <url>http://maven.apache.org</url>
-    <build>
+  
+  <build>
+      <plugins>
+          <plugin>
+              <artifactId>maven-assembly-plugin</artifactId>
+              <version>2.4</version>
+              <configuration>
+                  <source>1.6</source>
+                  <target>1.6</target>                  
+                  <descriptorRefs>
+                      <descriptorRef>jar-with-dependencies</descriptorRef>
+                  </descriptorRefs>
+                  <archive>
+                      <manifest>
+                          <mainClass>de.tuebingen.uni.sfs.qta.QtaApp</mainClass>
+                      </manifest>
+                  </archive>
+              </configuration>
+              <executions>
+                  <execution>
+                      <id>make-assembly</id>
+                      <phase>package</phase>
+                      <goals>
+                          <goal>single</goal>
+                      </goals>
+                  </execution>
+              </executions>
+          </plugin>
+      </plugins>
+  </build>
+    
+<!--    <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -21,10 +52,11 @@
                 </configuration>
             </plugin>
         </plugins>
-    </build>
+    </build>-->
     <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+  
   
   <repositories>
       <repository>

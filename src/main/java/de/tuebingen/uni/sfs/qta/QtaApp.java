@@ -60,27 +60,30 @@ public class QtaApp extends JFrame implements ActionListener
         app.initGUIComponents();
         app.setVisible(true);
         try {
-            readParametersFromFile();
+            File conf = new File("qta.conf");
+            if (conf.exists()) {
+                readParametersFromFile(conf);
+            } else {
+                String altLocation = QtaApp.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+                altLocation = altLocation.substring(0, altLocation.lastIndexOf("/")) + "/qta.conf";
+                conf = new File(altLocation);
+                if (conf.exists()) readParametersFromFile(conf);
+            }
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Error while reading config file. Proceed with default settings.");
         }
         TreeTaggerResource.INSTANCE.getClass();
     }
 
-    private static void readParametersFromFile() throws IOException, FileNotFoundException {
-        File conf = new File("qta.conf");
-        if (conf.exists()){
-            Properties props = new Properties();
-            FileInputStream fis = new FileInputStream("qta.conf");
-            props.load(fis);
-            if (props.containsKey("treetagger.location")){
-                String ttFolder = props.getProperty("treetagger.location");
-                System.setProperty("treetagger.home", ttFolder);
-            }
+    private static void readParametersFromFile(File file) throws IOException, FileNotFoundException {
+        Properties props = new Properties();
+        FileInputStream fis = new FileInputStream(file);
+        props.load(fis);
+        if (props.containsKey("treetagger.location")){
+            String ttFolder = props.getProperty("treetagger.location");
+            System.setProperty("treetagger.home", ttFolder);
         }
     }
-    
-//    private String filePath;
     
     private JComboBox fileTypeBox;
     private JTextField fileTextField;
