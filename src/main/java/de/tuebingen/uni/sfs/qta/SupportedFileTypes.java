@@ -4,7 +4,7 @@ package de.tuebingen.uni.sfs.qta;
  * @author Daniil Sorokin<daniil.sorokin@uni-tuebingen.de>
  */
 public enum SupportedFileTypes {
-    TXT, DOCX;
+    DOCX, TXT;
     
     public String getExtension(){
         return "." + this.name().toLowerCase();
