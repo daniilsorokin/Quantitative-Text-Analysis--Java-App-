@@ -20,7 +20,7 @@ public class IOUtils {
     
     public static final String ENCODING = "UTF-8";
     
-    public static String getTextFromFile(String fileName, FileClass type) throws IOException {
+    public static String getTextFromFile(String fileName, SupportedFileTypes type) throws IOException {
         switch(type){
             case DOCX:
                 InputStream is = new FileInputStream (fileName);
@@ -41,10 +41,10 @@ public class IOUtils {
     }
     
     public static String getTextFromFile(String fileName) throws IOException {
-        if (fileName.endsWith(FileClass.DOCX.getExtension()))
-            return getTextFromFile(fileName, FileClass.DOCX);
-        else if (fileName.endsWith(FileClass.TXT.getExtension()))
-            return getTextFromFile(fileName, FileClass.TXT);
+        if (fileName.endsWith(SupportedFileTypes.DOCX.getExtension()))
+            return getTextFromFile(fileName, SupportedFileTypes.DOCX);
+        else if (fileName.endsWith(SupportedFileTypes.TXT.getExtension()))
+            return getTextFromFile(fileName, SupportedFileTypes.TXT);
         else 
             throw new IOException("Can't handle this type of extension.");
     }

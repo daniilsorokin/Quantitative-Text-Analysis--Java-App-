@@ -1,10 +1,9 @@
 package de.tuebingen.uni.sfs.qta;
 
 /**
- *
- * @author dsorokin
+ * @author Daniil Sorokin<daniil.sorokin@uni-tuebingen.de>
  */
-public enum FileClass {
+public enum SupportedFileTypes {
     TXT, DOCX;
     
     public String getExtension(){
@@ -12,7 +11,7 @@ public enum FileClass {
     }
     
     public static String[] getNames(){
-        FileClass[] classes = FileClass.values();
+        SupportedFileTypes[] classes = SupportedFileTypes.values();
         String[] names = new String[classes.length];
         for (int i = 0; i < classes.length; i++) {
             names[i] = classes[i].name();

@@ -6,8 +6,7 @@ import opennlp.tools.tokenize.SimpleTokenizer;
 import opennlp.tools.tokenize.Tokenizer;
 
 /**
- *
- * @author dsorokin
+ * @author Daniil Sorokin<daniil.sorokin@uni-tuebingen.de>
  */
 public class QTAnalyser {
     public static HashMap<Word, Integer> computeFrequencyList (String text){

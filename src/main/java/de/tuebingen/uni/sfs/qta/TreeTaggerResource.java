@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import opennlp.tools.tokenize.SimpleTokenizer;
-import opennlp.tools.tokenize.Tokenizer;
+import javax.swing.JOptionPane;
 import org.annolab.tt4j.TokenHandler;
 import org.annolab.tt4j.TreeTaggerException;
 import org.annolab.tt4j.TreeTaggerWrapper;
@@ -16,23 +15,20 @@ import org.annolab.tt4j.TreeTaggerWrapper;
 public enum TreeTaggerResource {
     INSTANCE;
     
-    public static final String TREETAGGER_FOLDER = "/usr/lib/TreeTagger";
-    public static final String TREETAGGER_MODEL_DE = "/usr/lib/TreeTagger/lib/german-utf8.par";
-    public static final String TREETAGGER_MODEL_RU = "/usr/lib/TreeTagger/lib/russian.par";
-    
+    public static final String DEFUALT_TREETAGGER_LOCATION = "TreeTagger/";
+
     private TreeTaggerWrapper<String> resource;
     private final ArrayList<Word> taggerOutput;
 
     private TreeTaggerResource() {
         taggerOutput = new ArrayList<Word>();
-        
-        System.out.print("Load TreeTagger: ");
+        if (System.getProperty("treetagger.home") == null)
+            System.setProperty("treetagger.home", DEFUALT_TREETAGGER_LOCATION);
+        String treeTaggerModelRu = System.getProperty("treetagger.home") + "/lib/russian.par";
         try {
-            System.setProperty("treetagger.home", TREETAGGER_FOLDER);
             TreeTaggerWrapper<String> tt = new TreeTaggerWrapper<String>();
-            tt.setModel(TREETAGGER_MODEL_RU);
+            tt.setModel(treeTaggerModelRu);
             resource = tt;
-            System.out.println(" OK");
             
             resource.setHandler(new TokenHandler<String>() {
                 @Override
@@ -41,27 +37,28 @@ public enum TreeTaggerResource {
                 }
             });
         } catch (IOException ex) {
-            Logger.getLogger(TreeTaggerResource.class.getName()).log(Level.SEVERE, 
-                    "TreeTagger load failed. Check the parameter file.");
+            JOptionPane.showMessageDialog(null, "TreeTagger load failed. Proceed without lemmatization.");
         }
     }
 
-    
-    /**
-     * 
-     * @param tokens
-     * @return 
-     */
-    public ArrayList<Word> getLemmas(String[] tokens){        
-        try {
-            resource.process(tokens);
-        } catch (TreeTaggerException ex) {
-            Logger.getLogger(TreeTaggerResource.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(TreeTaggerResource.class.getName()).log(Level.SEVERE, null, ex);
+    public ArrayList<Word> getLemmas(String[] tokens){    
+        if (resource != null){ 
+            try {
+                resource.process(tokens);
+            } catch (TreeTaggerException ex) {
+                JOptionPane.showMessageDialog(null, "TreeTagger crashed.");
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(null, "TreeTagger crashed.");
+            }
+            ArrayList<Word> returnArray = new ArrayList<Word>(taggerOutput);
+            taggerOutput.clear();
+            return returnArray;
+        } else {
+            ArrayList<Word> returnArray = new ArrayList<Word>();
+            for (String token : tokens) {
+                returnArray.add(new Word(token, ""));
+            }
+            return returnArray;
         }
-        ArrayList<Word> returnArray = new ArrayList<Word>(taggerOutput);
-        taggerOutput.clear();
-        return returnArray;
     }
 }

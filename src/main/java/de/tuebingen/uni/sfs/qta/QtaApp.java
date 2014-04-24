@@ -4,9 +4,13 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Properties;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -48,18 +52,36 @@ public class QtaApp extends JFrame implements ActionListener
             java.util.logging.Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }        
+        }
+        
         QtaApp app = new QtaApp();
         app.initGUIComponents();
         app.setVisible(true);
+        try {
+            readParametersFromFile();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, "Error while reading config file. Proceed with default settings.");
+        }
+        TreeTaggerResource.INSTANCE.getClass();
+    }
+
+    private static void readParametersFromFile() throws IOException, FileNotFoundException {
+        File conf = new File("qta.conf");
+        if (conf.exists()){
+            Properties props = new Properties();
+            FileInputStream fis = new FileInputStream("qta.conf");
+            props.load(fis);
+            if (props.containsKey("treetagger.location")){
+                String ttFolder = props.getProperty("treetagger.location");
+                System.setProperty("treetagger.home", ttFolder);
+            }
+        }
     }
     
-    private String filePath;
-    private HashMap<Word,Integer> frequencyTable;
+//    private String filePath;
     
     private JComboBox fileTypeBox;
     private JTextField fileTextField;
-    private DefaultTableModel tableModel;
     private JCheckBox noPunctChBox;
     private JTable resultsTable;
     private JButton btnBrowse, btnStart, btnSave;
@@ -101,7 +123,7 @@ public class QtaApp extends JFrame implements ActionListener
         
         fileTypeBox = new JComboBox();
         fileTypeBox.setPreferredSize(new Dimension(100, 30));
-        fileTypeBox.setModel(new DefaultComboBoxModel(FileClass.getNames()));
+        fileTypeBox.setModel(new DefaultComboBoxModel(SupportedFileTypes.getNames()));
         fileSelectionInnerPane.add(fileTypeBox);
         
         btnStart = new JButton("Start");
@@ -121,20 +143,8 @@ public class QtaApp extends JFrame implements ActionListener
                 
         JScrollPane tableScrollPanel = new JScrollPane();
         resultsTable = new JTable();
-        tableModel = new DefaultTableModel( new String [] {"Word lemma", "Part of speech", "Frequency"}, 0 ) {
-            @Override
-            public Class getColumnClass(int column){
-                switch(column){
-                    case 2:
-                        return Integer.class;
-                    case 0:
-                    case 1:
-                    default:
-                        return String.class;
-                }
-            }
-        };
-        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<DefaultTableModel>(tableModel);
+        QtaTableModel tableModel = new QtaTableModel( new String [] {"Word lemma", "Part of speech", "Frequency"}, 0 );
+        TableRowSorter<QtaTableModel> sorter = new TableRowSorter<QtaTableModel>(tableModel);
         resultsTable.setModel(tableModel);
         resultsTable.setRowSorter(sorter);
         sorter.toggleSortOrder(2); 
@@ -166,16 +176,16 @@ public class QtaApp extends JFrame implements ActionListener
         if (e.getSource() == btnBrowse){
             int returnVal = fc.showOpenDialog(null);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
-                filePath = fc.getSelectedFile().getAbsolutePath();
                 fileTextField.setText(fc.getSelectedFile().getName());
             }
         } else if (e.getSource() == btnStart) {
+            String filePath = fc.getSelectedFile().getAbsolutePath();
             if (filePath != null){
                 try {
-                    String text = IOUtils.getTextFromFile(filePath, FileClass.valueOf(fileTypeBox.getSelectedItem().toString()));
-                    frequencyTable = QTAnalyser.computeFrequencyList(text);
+                    String text = IOUtils.getTextFromFile(filePath, SupportedFileTypes.valueOf(fileTypeBox.getSelectedItem().toString()));
+                    HashMap<Word,Integer> frequencyTable = QTAnalyser.computeFrequencyList(text);
+                    QtaTableModel tableModel = (QtaTableModel) resultsTable.getModel();
                     tableModel.setRowCount(0);
-                    
                     for (Word word : frequencyTable.keySet()) {
                         tableModel.addRow(new Object[] {
                             word.getLemma(),
@@ -200,4 +210,23 @@ public class QtaApp extends JFrame implements ActionListener
             }            
         }
     }    
+    
+    private class QtaTableModel extends DefaultTableModel {
+        
+        public QtaTableModel(String[] colnames, int numRows){
+            super(colnames, numRows);
+        }
+        
+        @Override
+        public Class getColumnClass(int column){
+            switch(column){
+                case 2:
+                    return Integer.class;
+                case 0:
+                case 1:
+                default:
+                    return String.class;
+            }
+        }
+    }
 }

@@ -3,9 +3,9 @@ package de.tuebingen.uni.sfs.qta;
 /**
  * @author Daniil Sorokin<daniil.sorokin@uni-tuebingen.de>
  */
-public class Word implements Comparable<Word>{
-    private String lemma;
-    private String pos;
+public class Word {
+    private final String lemma;
+    private final String pos;
 
     public Word(String lemma, String pos) {
         this.lemma = lemma;
@@ -50,11 +50,4 @@ public class Word implements Comparable<Word>{
     public String toString() {
         return "Word{" + "lemma=" + lemma + ", pos=" + pos + '}';
     }
-
-    @Override
-    public int compareTo(Word t) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    
 }
