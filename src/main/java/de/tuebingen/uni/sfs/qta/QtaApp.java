@@ -172,7 +172,7 @@ public class QtaApp extends JFrame implements ActionListener
         } else if (e.getSource() == btnStart) {
             if (filePath != null){
                 try {
-                    String text = FileReader.getTextFromFile(filePath, FileClass.valueOf(fileTypeBox.getSelectedItem().toString()));
+                    String text = IOUtils.getTextFromFile(filePath, FileClass.valueOf(fileTypeBox.getSelectedItem().toString()));
                     frequencyTable = QTAnalyser.computeFrequencyList(text);
                     tableModel.setRowCount(0);
                     
@@ -193,7 +193,7 @@ public class QtaApp extends JFrame implements ActionListener
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 String saveTo = fc.getSelectedFile().getAbsolutePath();
                 try {
-                    FileReader.saveTModelTofile(saveTo, resultsTable);
+                    IOUtils.saveTModelTofile(saveTo, resultsTable);
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(null, "Can't save to the selected file.");
                 }

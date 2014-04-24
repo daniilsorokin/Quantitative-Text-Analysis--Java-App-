@@ -1,10 +1,7 @@
 package de.tuebingen.uni.sfs.qta;
 
-import com.google.common.base.Functions;
-import com.google.common.collect.Ordering;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import opennlp.tools.tokenize.SimpleTokenizer;
 import opennlp.tools.tokenize.Tokenizer;
 
@@ -27,10 +24,5 @@ public class QTAnalyser {
             else freqs.put(lemma, 1);
         }
         return freqs;
-    }
-    
-    public static List sortMapByValues(HashMap map){
-        List sortedList = Ordering.natural().onResultOf(Functions.forMap(map)).reverse().immutableSortedCopy(map.keySet());
-        return sortedList;
-    }    
+    }   
 }

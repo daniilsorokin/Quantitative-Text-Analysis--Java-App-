@@ -1,6 +1,5 @@
 package de.tuebingen.uni.sfs.qta;
 
-import com.google.common.base.Charsets;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
@@ -15,10 +14,11 @@ import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
 /**
- *
- * @author dsorokin
+ * @author Daniil Sorokin<daniil.sorokin@uni-tuebingen.de>
  */
-public class FileReader {
+public class IOUtils {
+    
+    public static final String ENCODING = "UTF-8";
     
     public static String getTextFromFile(String fileName, FileClass type) throws IOException {
         switch(type){
@@ -30,7 +30,7 @@ public class FileReader {
             default:
             case TXT:
                 BufferedReader in = new BufferedReader(new InputStreamReader
-                                (new FileInputStream(fileName), Charsets.UTF_8));
+                                (new FileInputStream(fileName), ENCODING));
                 String line, text = "";
                 while((line = in.readLine()) != null ) {
                     text += line.trim() + " ";
@@ -50,7 +50,7 @@ public class FileReader {
     }
     
     public static void saveTModelTofile(String fileName, JTable table) throws IOException {
-        BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
+        BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), ENCODING));
         TableModel model = table.getModel();
         for( int i = 0; i < table.getRowCount(); i++ ) {
             int index = table.convertRowIndexToModel(i);
