@@ -7,7 +7,6 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -42,13 +41,13 @@ public class QtaApp extends JFrame implements ActionListener
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Test.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Test.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Test.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Test.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }        
         QtaApp app = new QtaApp();
         app.initGUIComponents();
@@ -138,6 +137,8 @@ public class QtaApp extends JFrame implements ActionListener
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<DefaultTableModel>(tableModel);
         resultsTable.setModel(tableModel);
         resultsTable.setRowSorter(sorter);
+        sorter.toggleSortOrder(2); 
+        sorter.toggleSortOrder(2); //Reverse order
         
         noPunctChBox.addChangeListener(new ChangeListener() {
             @Override
@@ -173,9 +174,9 @@ public class QtaApp extends JFrame implements ActionListener
                 try {
                     String text = FileReader.getTextFromFile(filePath, FileClass.valueOf(fileTypeBox.getSelectedItem().toString()));
                     frequencyTable = QTAnalyser.computeFrequencyList(text);
-                    List<Word> ordered = QTAnalyser.sortMapByValues(frequencyTable);
                     tableModel.setRowCount(0);
-                    for (Word word : ordered) {
+                    
+                    for (Word word : frequencyTable.keySet()) {
                         tableModel.addRow(new Object[] {
                             word.getLemma(),
                             word.getPos(),
