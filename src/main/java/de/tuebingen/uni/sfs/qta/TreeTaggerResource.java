@@ -39,6 +39,7 @@ public enum TreeTaggerResource {
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "TreeTagger load failed. Proceed without lemmatization.\n"
                     + "Location: " + System.getProperty("treetagger.home"));
+            Logger.getLogger(QtaApp.LOGGER_NAME).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -48,8 +49,10 @@ public enum TreeTaggerResource {
                 resource.process(tokens);
             } catch (TreeTaggerException ex) {
                 JOptionPane.showMessageDialog(null, "TreeTagger crashed.");
+                Logger.getLogger(QtaApp.LOGGER_NAME).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
-                JOptionPane.showMessageDialog(null, "TreeTagger crashed.");
+                JOptionPane.showMessageDialog(null, "TreeTagger crashed. IO problem.");
+                Logger.getLogger(QtaApp.LOGGER_NAME).log(Level.SEVERE, null, ex);
             }
             ArrayList<Word> returnArray = new ArrayList<Word>(taggerOutput);
             taggerOutput.clear();

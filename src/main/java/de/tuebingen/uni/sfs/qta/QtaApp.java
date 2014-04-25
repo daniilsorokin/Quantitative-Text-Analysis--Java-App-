@@ -8,9 +8,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -37,8 +42,24 @@ import javax.swing.table.TableRowSorter;
  */
 public class QtaApp extends JFrame implements ActionListener
 {
+    
+    public static final String LOGGER_NAME = Logger.GLOBAL_LOGGER_NAME + "." + QtaApp.class.getName() + ".Logger";
+    private static final Logger logger = Logger.getLogger(LOGGER_NAME);
+    private static final String LOGGER_ENCODING = "UTF-8";
+    
     public static void main( String[] args )
     {
+        try {
+            FileHandler fh = new FileHandler("log.xml");
+            fh.setEncoding(LOGGER_ENCODING);
+            fh.setLevel(Level.ALL);
+            logger.addHandler(fh);            
+        } catch (IOException ex) {
+            Logger.getLogger(QtaApp.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SecurityException ex) {
+            Logger.getLogger(QtaApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -47,13 +68,13 @@ public class QtaApp extends JFrame implements ActionListener
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            Logger.getLogger(QtaApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         
         QtaApp app = new QtaApp();
@@ -71,6 +92,7 @@ public class QtaApp extends JFrame implements ActionListener
             }
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Error while reading config file. Proceed with default settings.");
+            logger.log(Level.SEVERE, null, ex);
         }
         TreeTaggerResource.INSTANCE.getClass();
     }
@@ -207,6 +229,7 @@ public class QtaApp extends JFrame implements ActionListener
                     btnSave.setEnabled(true);
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(null, "Can't open the selected file.");
+                    logger.log(Level.SEVERE, null, ex);
                 }
             }
         } else if (e.getSource() == btnSave){
@@ -218,6 +241,7 @@ public class QtaApp extends JFrame implements ActionListener
                     IOUtils.saveTModelTofile(saveTo, resultsTable);
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(null, "Can't save to the selected file.");
+                    logger.log(Level.SEVERE, null, ex);
                 }
             }            
         }
