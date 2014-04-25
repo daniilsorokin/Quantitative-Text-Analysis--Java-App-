@@ -188,7 +188,7 @@ public class QtaApp extends JFrame implements ActionListener
                 if (noPunctChBox.isSelected()) {
                     ArrayList<RowFilter<Object, Object>> filters = new ArrayList<RowFilter<Object, Object>>();
                     filters.add(RowFilter.regexFilter("(SENT|PUNCT)", 1));
-                    filters.add(RowFilter.regexFilter("(@card@)", 0));
+                    filters.add(RowFilter.regexFilter("^(@card@|\\p{Punct}+|[•§])$", 0));
                     ((TableRowSorter) resultsTable.getRowSorter())
                             .setRowFilter(RowFilter.notFilter(RowFilter.orFilter(filters)));
                 } else {
@@ -216,7 +216,8 @@ public class QtaApp extends JFrame implements ActionListener
             if (filePath != null){
                 try {
                     String text = IOUtils.getTextFromFile(filePath, SupportedFileTypes.valueOf(fileTypeBox.getSelectedItem().toString()));
-                    HashMap<Word,Integer> frequencyTable = QTAnalyser.computeFrequencyList(text);
+//                    HashMap<Word,Integer> frequencyTable = QTAnalyser.computeFrequencyList(text);
+                    HashMap<Word,Double> frequencyTable = QTAnalyser.INSTANCE.computeNormalizedFrequency(QTAnalyser.INSTANCE.computeFrequencyList(text));
                     QtaTableModel tableModel = (QtaTableModel) resultsTable.getModel();
                     tableModel.setRowCount(0);
                     for (Word word : frequencyTable.keySet()) {
