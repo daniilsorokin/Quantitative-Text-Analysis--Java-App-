@@ -175,7 +175,7 @@ public class QtaApp extends JFrame implements ActionListener
                 
         JScrollPane tableScrollPanel = new JScrollPane();
         resultsTable = new JTable();
-        QtaTableModel tableModel = new QtaTableModel( new String [] {"Word lemma", "Part of speech", "Frequency"}, 0 );
+        QtaTableModel tableModel = new QtaTableModel( new String [] {"Word lemma", "Part of speech", "Frequency", "Normalized frequency"}, 0 );
         TableRowSorter<QtaTableModel> sorter = new TableRowSorter<QtaTableModel>(tableModel);
         resultsTable.setModel(tableModel);
         resultsTable.setRowSorter(sorter);
@@ -216,15 +216,16 @@ public class QtaApp extends JFrame implements ActionListener
             if (filePath != null){
                 try {
                     String text = IOUtils.getTextFromFile(filePath, SupportedFileTypes.valueOf(fileTypeBox.getSelectedItem().toString()));
-//                    HashMap<Word,Integer> frequencyTable = QTAnalyser.computeFrequencyList(text);
-                    HashMap<Word,Double> frequencyTable = QTAnalyser.INSTANCE.computeNormalizedFrequency(QTAnalyser.INSTANCE.computeFrequencyList(text));
+                    HashMap<Word,Integer> frequencyTable = QTAnalyser.INSTANCE.computeFrequencyList(text);
+                    HashMap<Word,Double> normFrequencyTable = QTAnalyser.INSTANCE.computeNormalizedFrequency(frequencyTable);
                     QtaTableModel tableModel = (QtaTableModel) resultsTable.getModel();
                     tableModel.setRowCount(0);
                     for (Word word : frequencyTable.keySet()) {
                         tableModel.addRow(new Object[] {
                             word.getLemma(),
                             word.getPos(),
-                            frequencyTable.get(word)
+                            frequencyTable.get(word),
+                            normFrequencyTable.get(word)
                         });
                     }
                     btnSave.setEnabled(true);
@@ -259,6 +260,8 @@ public class QtaApp extends JFrame implements ActionListener
             switch(column){
                 case 2:
                     return Integer.class;
+                case 3:
+                    return Double.class;
                 case 0:
                 case 1:
                 default:
