@@ -109,11 +109,10 @@ public class QtaApp extends JFrame implements ActionListener
     
     private JComboBox fileTypeBox;
     private JTextField fileTextField;
-    private JCheckBox noPunctChBox;
     private JTable resultsTable;
     private JButton btnBrowse, btnStart, btnSave;
-    private JFileChooser fc;
-    private FileFilter ffInput, ffOutput;
+    private JFileChooser fcInput, fcOutput;
+    private FileFilter ffInputTXT, ffInputDOCX, ffOutputCSV, ffOutputXLSX;
     
     private void initGUIComponents() {
         // set frame preferences
@@ -123,12 +122,21 @@ public class QtaApp extends JFrame implements ActionListener
         this.setTitle("QTA");
         this.setLocationRelativeTo(null);
         
-        fc = new JFileChooser();
-        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        ffInput = new FileNameExtensionFilter("Supported input formats (*.txt, *.docx)", "txt", "docx");
-        ffOutput = new FileNameExtensionFilter("Output format (*.csv)", "csv");
-        fc.addChoosableFileFilter(ffInput);
-        fc.addChoosableFileFilter(ffOutput);
+        fcInput = new JFileChooser();
+        fcInput.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        ffInputTXT = new FileNameExtensionFilter("Simple text (*.txt)", "txt");
+        ffInputDOCX = new FileNameExtensionFilter("Microsoft Word 2007 and later (*.docx)", "docx");
+        fcInput.addChoosableFileFilter(ffInputTXT);
+        fcInput.addChoosableFileFilter(ffInputDOCX);
+        fcInput.setAcceptAllFileFilterUsed(false);
+        
+        fcOutput = new JFileChooser();
+        fcOutput.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        ffOutputCSV = new FileNameExtensionFilter("Comma separated values (*.csv)", "csv");
+        ffOutputXLSX = new FileNameExtensionFilter("Microsoft Excel 2007 and later (*.xlsx)", "xlsx");
+        fcOutput.addChoosableFileFilter(ffOutputCSV);
+        fcOutput.addChoosableFileFilter(ffOutputXLSX);
+        fcOutput.setAcceptAllFileFilterUsed(false);
         
         // the main panel
         JPanel contentPane = new JPanel();
@@ -163,9 +171,7 @@ public class QtaApp extends JFrame implements ActionListener
         fileSelectionInnerPane.add(btnStart);
         btnStart.addActionListener(this);
         
-        noPunctChBox = new JCheckBox("Leave out punctuation and numbers.");
         JPanel optionsPane = new JPanel();
-        optionsPane.add(noPunctChBox);
         btnSave = new JButton("Save table to file");
         btnSave.addActionListener(this);
         btnSave.setEnabled(false);
@@ -179,23 +185,8 @@ public class QtaApp extends JFrame implements ActionListener
         TableRowSorter<QtaTableModel> sorter = new TableRowSorter<QtaTableModel>(tableModel);
         resultsTable.setModel(tableModel);
         resultsTable.setRowSorter(sorter);
-        sorter.toggleSortOrder(2); 
-        sorter.toggleSortOrder(2); //Reverse order
-        
-        noPunctChBox.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                if (noPunctChBox.isSelected()) {
-                    ArrayList<RowFilter<Object, Object>> filters = new ArrayList<RowFilter<Object, Object>>();
-                    filters.add(RowFilter.regexFilter("(SENT|PUNCT)", 1));
-                    filters.add(RowFilter.regexFilter("^(@card@|\\p{Punct}+|[•§])$", 0));
-                    ((TableRowSorter) resultsTable.getRowSorter())
-                            .setRowFilter(RowFilter.notFilter(RowFilter.orFilter(filters)));
-                } else {
-                    ((TableRowSorter) resultsTable.getRowSorter()).setRowFilter(null);
-                }
-            }
-        });        
+        sorter.toggleSortOrder(3); 
+        sorter.toggleSortOrder(3); //Reverse order       
 
         tableScrollPanel.setViewportView(resultsTable);
         contentPane.add(fileSelectionPane, BorderLayout.NORTH);
@@ -206,13 +197,13 @@ public class QtaApp extends JFrame implements ActionListener
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == btnBrowse){
-            fc.setFileFilter(ffInput);
-            int returnVal = fc.showOpenDialog(null);
+            fcInput.setFileFilter(ffInputTXT);
+            int returnVal = fcInput.showOpenDialog(null);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
-                fileTextField.setText(fc.getSelectedFile().getName());
+                fileTextField.setText(fcInput.getSelectedFile().getName());
             }
         } else if (e.getSource() == btnStart) {
-            String filePath = fc.getSelectedFile().getAbsolutePath();
+            String filePath = fcInput.getSelectedFile().getAbsolutePath();
             if (filePath != null){
                 try {
                     String text = IOUtils.getTextFromFile(filePath, SupportedFileTypes.valueOf(fileTypeBox.getSelectedItem().toString()));
@@ -235,12 +226,15 @@ public class QtaApp extends JFrame implements ActionListener
                 }
             }
         } else if (e.getSource() == btnSave){
-            fc.setFileFilter(ffOutput);
-            int returnVal = fc.showSaveDialog(null);
+            fcOutput.setFileFilter(ffOutputCSV);
+            int returnVal = fcOutput.showSaveDialog(null);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
-                String saveTo = fc.getSelectedFile().getAbsolutePath();
+                String saveTo = fcOutput.getSelectedFile().getAbsolutePath();
                 try {
-                    IOUtils.saveTModelToCSV(saveTo, resultsTable);
+                    if (fcOutput.getFileFilter() == ffOutputCSV)
+                        IOUtils.saveTModelToCSV(saveTo, resultsTable);
+                    else if (fcOutput.getFileFilter() == ffOutputXLSX)
+                        IOUtils.saveTModelToXlsx(saveTo, resultsTable);
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(null, "Can't save to the selected file.");
                     logger.log(Level.SEVERE, null, ex);

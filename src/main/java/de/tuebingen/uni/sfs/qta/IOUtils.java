@@ -100,6 +100,7 @@ public class IOUtils {
     }
     
     public static void saveTModelToXlsx (String fileName, JTable table) throws IOException {
+        if (!fileName.endsWith(".xlsx")) fileName += ".xlsx";
         Workbook wb = new XSSFWorkbook();
         Sheet sheet = wb.createSheet();
         TableModel model = table.getModel();
