@@ -10,6 +10,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import javax.swing.JTable;
 import javax.swing.table.TableModel;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
@@ -20,6 +24,15 @@ public class IOUtils {
     
     public static final String ENCODING = "UTF-8";
     
+    /**
+     * Extracts textual information from a file of a supported type. For text 
+     * files only "Unicode (utf-8)" encoding is supported.
+     * 
+     * @param fileName the name of the file containing text
+     * @param type one of the supported types of files
+     * @return String with the whole text from the file
+     * @throws IOException
+     */
     public static String getTextFromFile(String fileName, SupportedFileTypes type) throws IOException {
         switch(type){
             case DOCX:
@@ -40,6 +53,16 @@ public class IOUtils {
         }
     }
     
+    /**
+     * Extracts textual information from a file of a supported type. Type of 
+     * the file is guessed based on the file extension. For text files only 
+     * "Unicode (utf-8)" encoding is supported. If file seems to have 
+     * an unsupported type a IOException is thrown.
+     * 
+     * @param fileName the name of the file containing text
+     * @return String with the whole text from the file
+     * @throws IOException 
+     */
     public static String getTextFromFile(String fileName) throws IOException {
         if (fileName.endsWith(SupportedFileTypes.DOCX.getExtension()))
             return getTextFromFile(fileName, SupportedFileTypes.DOCX);
@@ -49,7 +72,15 @@ public class IOUtils {
             throw new IOException("Can't handle this type of extension.");
     }
     
-    public static void saveTModelTofile(String fileName, JTable table) throws IOException {
+    /**
+     * Saves information from a table interface element to a file in CSV format.
+     * Only information that is actually displayed at the moment is saved.
+     * 
+     * @param fileName the name of the file
+     * @param table table that to save
+     * @throws IOException 
+     */
+    public static void saveTModelToCSV(String fileName, JTable table) throws IOException {
         if (!fileName.endsWith(".csv")) fileName += ".csv";
         BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), ENCODING));
         TableModel model = table.getModel();
@@ -66,5 +97,21 @@ public class IOUtils {
             out.newLine();
         }
         out.close();
+    }
+    
+    public static void saveTModelToXlsx (String fileName, JTable table) throws IOException {
+        Workbook wb = new XSSFWorkbook();
+        Sheet sheet = wb.createSheet();
+        TableModel model = table.getModel();
+        for( int i = 0; i < table.getRowCount(); i++ ) {
+            int index = table.convertRowIndexToModel(i);
+            Row row = sheet.createRow((short) i);
+            for( int j = 0; j < table.getColumnCount(); j++ ) {
+                row.createCell(j).setCellValue(model.getValueAt( index, j ).toString());
+            }
+        }
+        FileOutputStream fileOut = new FileOutputStream(fileName);
+        wb.write(fileOut);
+        fileOut.close();
     }
 }

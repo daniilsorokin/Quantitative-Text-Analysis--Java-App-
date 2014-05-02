@@ -20,6 +20,7 @@ public enum QTAnalyser {
     
     public static final String ENCODING = "UTF-8";
     
+    private static final boolean NO_PUNCT = true;            
     private HashMap<String, Integer> lemmaFreqs;
     
     private QTAnalyser(){        
@@ -44,18 +45,25 @@ public enum QTAnalyser {
         }
     }
     
-    public HashMap<Word, Integer> computeFrequencyList (String text){
-        //Normalize
+    private String normalize (String text) {
         text = text.replace("—", "-")
                    .replace("…", ".");
+        return text;
+    }
+    
+    public HashMap<Word, Integer> computeFrequencyList (String text){
+        text = normalize(text);
         HashMap<Word, Integer> freqs = new HashMap<Word, Integer>();
         Tokenizer tokenizer = SimpleTokenizer.INSTANCE;
         String[] tokens = tokenizer.tokenize(text);
         ArrayList<Word> lemmas = TreeTaggerResource.INSTANCE.getLemmas(tokens);
         for (Word lemma : lemmas) {
-            if (freqs.containsKey(lemma))
-                freqs.put(lemma, freqs.get(lemma) + 1);
-            else freqs.put(lemma, 1);
+            if (!NO_PUNCT || !(lemma.getLemma().equals("@card@") ||
+                    lemma.getLemma().matches("[^\\pL]+"))) {
+                if (freqs.containsKey(lemma))
+                    freqs.put(lemma, freqs.get(lemma) + 1);
+                else freqs.put(lemma, 1);
+            }
         }
         return freqs;
     }   
