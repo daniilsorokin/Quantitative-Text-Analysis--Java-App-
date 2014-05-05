@@ -2,36 +2,27 @@ package de.tuebingen.uni.sfs.qta;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultComboBoxModel;
+import javax.swing.Box;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.RowFilter;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
@@ -107,15 +98,12 @@ public class QtaApp extends JFrame implements ActionListener
         }
     }
     
-    private JComboBox fileTypeBox;
-    private JTextField fileTextField;
     private JTable resultsTable;
-    private JButton btnBrowse, btnStart, btnSave;
+    private JButton btnBrowse, btnSave;
     private JFileChooser fcInput, fcOutput;
     private FileFilter ffInputTXT, ffInputDOCX, ffOutputCSV, ffOutputXLSX;
     
     private void initGUIComponents() {
-        // set frame preferences
         this.setResizable(true);
         this.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         this.setMinimumSize(new Dimension(600, 200));
@@ -146,38 +134,18 @@ public class QtaApp extends JFrame implements ActionListener
         
         
         JPanel fileSelectionPane = new JPanel();
-        fileSelectionPane.setLayout(new BoxLayout(fileSelectionPane,BoxLayout.Y_AXIS));
-        JPanel fileSelectionInnerPane = new JPanel();
-        fileSelectionPane.add(fileSelectionInnerPane);
+        fileSelectionPane.setLayout(new FlowLayout(FlowLayout.LEADING));
         
-        btnBrowse = new JButton("Browse");
-        btnBrowse.setPreferredSize(new Dimension(100, 30));
-        fileSelectionInnerPane.add(btnBrowse);
-        
-        fileTextField = new JTextField("Select file by clicking \"Browse\".");
-        fileTextField.setPreferredSize(new Dimension(250, 30));
-        fileSelectionInnerPane.add(fileTextField);
-        
-        
+        btnBrowse = new JButton("Open file and analyse");
+        fileSelectionPane.add(btnBrowse);
         btnBrowse.addActionListener(this);
-        
-        fileTypeBox = new JComboBox();
-        fileTypeBox.setPreferredSize(new Dimension(100, 30));
-        fileTypeBox.setModel(new DefaultComboBoxModel(SupportedFileTypes.getNames()));
-        fileSelectionInnerPane.add(fileTypeBox);
-        
-        btnStart = new JButton("Start");
-        btnStart.setPreferredSize(new Dimension(100, 30));
-        fileSelectionInnerPane.add(btnStart);
-        btnStart.addActionListener(this);
-        
-        JPanel optionsPane = new JPanel();
+       
         btnSave = new JButton("Save table to file");
         btnSave.addActionListener(this);
         btnSave.setEnabled(false);
-        optionsPane.add(btnSave);
-
-        fileSelectionPane.add(optionsPane);
+        fileSelectionPane.add(btnSave);
+        
+        fileSelectionPane.add(new Box.Filler(null, null, null));
                 
         JScrollPane tableScrollPanel = new JScrollPane();
         resultsTable = new JTable();
@@ -200,13 +168,14 @@ public class QtaApp extends JFrame implements ActionListener
             fcInput.setFileFilter(ffInputTXT);
             int returnVal = fcInput.showOpenDialog(null);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
-                fileTextField.setText(fcInput.getSelectedFile().getName());
-            }
-        } else if (e.getSource() == btnStart) {
-            String filePath = fcInput.getSelectedFile().getAbsolutePath();
-            if (filePath != null){
+                String filePath = fcInput.getSelectedFile().getAbsolutePath();                
                 try {
-                    String text = IOUtils.getTextFromFile(filePath, SupportedFileTypes.valueOf(fileTypeBox.getSelectedItem().toString()));
+                    String text = "";
+                    if (fcInput.getFileFilter() == ffInputDOCX)
+                        text = IOUtils.getTextFromFile(filePath, SupportedFileTypes.DOCX);
+                    else if (fcInput.getFileFilter() == ffInputTXT)
+                        text = IOUtils.getTextFromFile(filePath, SupportedFileTypes.TXT);
+                    
                     HashMap<Word,Integer> frequencyTable = QTAnalyser.INSTANCE.computeFrequencyList(text);
                     HashMap<Word,Double> normFrequencyTable = QTAnalyser.INSTANCE.computeNormalizedFrequency(frequencyTable);
                     QtaTableModel tableModel = (QtaTableModel) resultsTable.getModel();
